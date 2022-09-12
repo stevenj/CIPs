@@ -110,8 +110,8 @@ An individual raw Unsigned Vote record.
 * proposal - The [proposal](#proposal) being voted on.
 * choice - This value MUST match one of the available `voteOptions` in the `proposal` element. An `UnknownChoiceError` should be thrown if the value is not one of the valid `voteOptions` of the `proposal`.
 * expiration - Voting Chain epoch \& slot for when the vote will expire. This value is supplied and maintained by the dApp, and forms a necessary component of a [Vote](#vote)
-* purpose - The [voting purpose](#voting-purpose) being voted on.
-* spendingCounter - The spending counter is used to prevent double voting. The spending counter for the vote transaction will be supplied and maintained by the dApp. The dApp will manage supplying this in sequential order, and this should not be enforced by the Wallet.
+* purpose - The [voting purpose](#voting-purpose) being voted on. (Currently always 0).
+* spendingCounter - The spending counter is used to prevent double voting. The spending counter for the vote transaction will be supplied and maintained by the dApp. The dApp will manage supplying this in the correct order, and this should not be enforced by the Wallet.
 
 It is required to attach it to the vote according to [Jormungandr Voting] (<https://input-output-hk.github.io/jormungandr/jcli/vote.html#voting>).
 
@@ -261,30 +261,7 @@ permissions to be displayed to the user.
 
 * `purpose` - this is a list of purposes that the dApp is advising that it will be using on the API.  The wallet must respond with an error if the purpose is not supported by the Wallet.
 
-  Note: There are currently no "purpose specific" functions, all purposes are currently intended to operate equally.
-
-  How the wallet validates the requested list of purposes is Wallet specific.  For example:
-
-  When presented with a list of purposes `[0,1,2]`, and the wallet knows that purpose `0` is Catalyst (as defined above).  Then, when requesting the users permission, it might prompt and say something like :
-
-    ```text
-    Allow Voting Purposes:
-      Catalyst (0)      [ ]
-      Unknown Purpose 1 [ ]
-      Unknown Purpose 2 [ ]
-    ```
-
-  The user could then select what purposes they would allow, and if it is not
-  **ALL** of them, the response would indicate the purposes the use will not
-  allow. The dApp may then re-attempt the connection with only the allowed
-  purposes, which the wallet would already know are permitted by the user, so
-  the wallet would not necessarily be required to re-authorize with the user.
-
-  Alternatively, It would be perfectly permissable, currently, that the Wallet automatically reject any purpose not defined by this CIP.
-
-  This is left up to the Wallet to decide how to handle this during
-  authorization, and these are simple illustrative examples, to describe simple
-  authorization flows.
+  Note: Currently only voting purpose 0 (Catalyst) is defined. The wallet should reject any other purpose requested.
 
 ### Returns
 
@@ -300,7 +277,7 @@ interaction as the user has already consented to the dApp reading information
 about the wallet's governance state when they agreed to
 [`cardano.{walletName}.governance.enable()`](#cardanowalletnamegovernanceenablepurpose-votingpurpose-promiseapi).
 The remaining methods
-[`api.submitVotes()`](#apisubmitvotesvotes-vote-promisebytes) and
+[`api.signVotes()`](#apisignvotesvotes-vote-promisebytes) and
 [`api.signData()`](#apisubmitdelegationdelegation-delegation-promisesigneddelegationmetadata)
 must request the user's consent in an informative way for each and every API
 call in order to maintain security.
@@ -309,7 +286,7 @@ The API chosen here is for the mini mum API necessary for dApp <-> Wallet
 interactions without convenience functions that don't strictly need the wallet's
 state to work.
 
-## api.submitVotes(votes: Vote[]): Promise\<Bytes>[]
+## api.signVotes(votes: Vote[]): Promise\<Bytes>[]
 
 Errors: [`APIError`](#extended-apierror), [`TxSignError`](#extended-txsignerror)
 
@@ -319,9 +296,11 @@ IF the wallet user declines SOME of the votes, a [`TxSignError`](#extended-txsig
 
 However, if the wallet user declines the entire set of votes, the wallet should raise a [`TxSignError`](#extended-txsignerror) with the `code` set to `UserDeclined`.
 
+In either case, where the user declines to sign at least 1 of the votes, no signed votes are returned.
+
 ### Returns
 
-`Bytes[]` - An array of the hex-encoded string of the fully encoded and signed vote transaction.  The dApp will submit this vote to the Catalyst Governance Subchain Bridge on behalf of the wallet.
+`Bytes[]` - An array of the hex-encoded strings of the fully encoded and signed vote transactions.  The dApp will submit these votes on behalf of the wallet.
 
 ## api.getVotingKeys(): Promise<cbor<PublicKey\>[]>
 
@@ -394,4 +373,4 @@ The [Signed Delegation Metadata](#signeddelegationmetadata) of the voter registr
 ## Casting a vote
 
 1. The dApp collects the users voting choices for a particular voting proposal.
-2. The dApp submits that choice through [api.submitVotes](#apisubmitvotesvotes-vote-promisebytes) which confirms the votes with the user, and signs them.
+2. The dApp submits that choice through [api.signVotes](#apisignvotesvotes-vote-promisebytes) which confirms the votes with the user, and signs them.
