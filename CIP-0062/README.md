@@ -10,7 +10,7 @@ License: CC-BY-4.0
 
 # Abstract
 
-This document describe the interface between webpage / web-based stack and cardano wallets. This specifies that API of the javascript object that need to be injected into the web applications in order to support all the Governance features.
+This document describes an interface between webpage / web-based stacks and Cardano wallets. This specification defines the API of the javascript object that needs to be injected into the web applications to support Governance features.
 
 These definitions extend [CIP-30 (Cardano dApp-Wallet Web Bridge)](https://cips.cardano.org/cips/cip30/) to provide specific support for vote delegation.
 
@@ -44,7 +44,7 @@ type GovernanceKey = {
 }
 ```
 
-* `votingKey` - Ed25519 pubkey 32 bytes HEX string
+* `votingKey` - Ed25519 pubkey 32 bytes HEX string.
 * `weight` - Used to calculate the actual voting power using the rules described
   in [CIP-36](https://cips.cardano.org/cips/cip36/).
 
@@ -115,7 +115,7 @@ An individual raw Unsigned Vote record.
 * purpose - The [voting purpose](#voting-purpose) being voted on. (Currently always 0).
 * spendingCounter - The spending counter is used to prevent double voting. The spending counter for the vote transaction will be supplied and maintained by the dApp. The dApp will manage supplying this in the correct order, and this should not be enforced by the Wallet.
 
-It is required to attach it to the vote according to [Jormungandr Voting] (<https://input-output-hk.github.io/jormungandr/jcli/vote.html#voting>).
+It is required to attach it to the vote according to [Jormungandr Voting](<https://input-output-hk.github.io/jormungandr/jcli/vote.html#voting>).
 
 ## Delegation
 
@@ -280,7 +280,7 @@ about the wallet's governance state when they agreed to
 [`cardano.{walletName}.governance.enable()`](#cardanowalletnamegovernanceenablepurpose-votingpurpose-promiseapi).
 The remaining methods
 [`api.signVotes()`](#apisignvotesvotes-vote-promisebytes) and
-[`api.signData()`](#apisubmitdelegationdelegation-delegation-promisesigneddelegationmetadata)
+[`api.submitDelegation()`](#apisubmitdelegationdelegation-delegation-promisesigneddelegationmetadata)
 must request the user's consent in an informative way for each and every API
 call in order to maintain security.
 
@@ -342,7 +342,7 @@ The [Signed Delegation Metadata](#signeddelegationmetadata) of the voter registr
 
 2. **`Collect Voting Keys`** - The dApp Collects the dRep keys to delegate voting power to from the Catalyst Voting Center backend, and the user selects the required delegation.
 
-3. **`Submit delegation`** - Submit the metadata transaction to the chain using [**api.submitDelegation**](#apisubmitdelegationdelegation-delegation-promisesigneddelegationmetadata) which implicitly sign and/or can use the already existing [**api.submitTx**](https://cips.cardano.org/cips/cip30/#apisubmittxtxcbortransactionpromisehash32),  available from [CIP-30](https://cips.cardano.org/cips/cip30/)
+3. **`Submit delegation`** - Submit the metadata transaction to the chain using [**api.submitDelegation**](#apisubmitdelegationdelegation-delegation-promisesigneddelegationmetadata) which implicitly sign and/or can use the already existing [**api.submitTx**](https://cips.cardano.org/cips/cip30/#apisubmittxtxcbortransactionpromisehash32),  available from [CIP-30](https://cips.cardano.org/cips/cip30/).
 
 ## Casting a vote
 
