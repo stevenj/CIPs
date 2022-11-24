@@ -12,18 +12,18 @@ License: CC-BY-4.0
 
 This document describes an interface between webpage / web-based stacks and Cardano wallets. This specification defines the API of the javascript object that needs to be injected into the web applications to support Governance features.
 
-These definitions extend [CIP-30 (Cardano dApp-Wallet Web Bridge)](https://cips.cardano.org/cips/cip30/) to provide specific support for vote delegation.
+These definitions extend [CIP-30 (Cardano dApp-Wallet Web Bridge)](https://cips.cardano.org/cips/cip30/) to provide specific support for Catalyst vote delegation and vote signing.
 
 # Motivation
 
-The goal for this CIP is to extend the dApp-Wallet web bridge to enable the construction of transactions containing metadata that conforms to
-[CIP-36 (Catalyst/Voltaire Registration Transaction Metadata Format - Updated)](https://cips.cardano.org/cips/cip36/),
-enabling new functionality including vote delegation to either private or public representatives (Catalyst dReps),
-splitting or combining of private votes,
-the use of different voting keys or delegations
-for different purposes (Catalyst etc).
+Cardano uses a sidechain (Jormungandr) for its treasury system ("Catalyst") and for other voting purposes. To be able to participate on the sidechain users associate their mainnet staked ADA with a voting key. This association happens on Cardano mainnet via metadata attached to a Catalyst "registration" transaction. [CIP-15 (Catalyst Registration Transaction Metadata Format)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0015) introduced the inital standard, with this being utilized as the only registration option upto Catalyst's Fund 9.
 
-TODO: add explaination/context for Catalyst and voting blockchain. + explain term fragement.
+With the introduction of [CIP-36 (Catalyst/Voltaire Registration Transaction Metadata Format - Updated)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) a renewed standard introduced. With changes to introduce a determinictic voting key derivation and a richer, yet more generic registration specification. This brought a suite of benefits, namely: vote delegation to either private or public representatives (Catalyst dReps), splitting or combining of private votes, the use of different voting keys or delegations for different purposes (Catalyst etc).
+
+The goal for this CIP is to extend the dApp-Wallet web bridge to enable the construction of transactions containing metadata that conforms to
+[CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) specification. This allows for the creation of governance centric dApps, offering greater functionality to users of Cardano governance/Catalyst. 
+
+Current iterations of Cardano's Catalyst lacks a web-based stack, instead users are forced to transfer voting keys from wallets to a mobile app. This process is not only cumbersome but figid and uncomprimising. Utilizing a dApp-Wallet web bridge stack for Catalyst would empower users to be able to engage with Catalyst across platforms.
 
 # Specification
 
@@ -35,24 +35,24 @@ The API Extension specified in this document will count as version `0.2.0` for v
 
 ### PublicKey
 
-TODO: Define this.
+TODO: this
 
 ### GovernanceKey
 
-```js
+```ts
 type GovernanceKey = {
   votingKey: string,
   weight: number
 }
 ```
 
-* votingKey - A hex-encoded string representing a 32 byte Ed25519 Public Key as described in [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036#delegation-format).
+* votingKey - A hex-encoded string representing a 32 byte Ed25519 public key as described in [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036#delegation-format).
 * weight - Used to calculate the actual voting power using the rules described
   in [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036#delegation-format).
 
 ### VotingPurpose
 
-```js
+```ts
 type enum VotingPurpose = {
   CATALYST = 0
 }
@@ -69,7 +69,7 @@ future CIP listing currently allocated Voting Purposes.
 
 ### BlockDate
 
-```js
+```ts
 interface BlockDate {
   epoch: number,
   slot: number
@@ -81,7 +81,7 @@ interface BlockDate {
 
 ### Proposal
 
-```js
+```ts
 interface Proposal {
   votePlanId: string,
   voteOptions: number[],
@@ -95,7 +95,7 @@ interface Proposal {
 
 ### Vote
 
-```js
+```ts
 interface Vote {
   proposal: Proposal,
   choice: number,
@@ -117,7 +117,7 @@ See [Jormungandr Voting](<https://input-output-hk.github.io/jormungandr/jcli/vot
 
 ## Delegation
 
-```js
+```ts
 interface Delegation {
     delegations: GovernanceKey[],
     purpose: VotingPurpose
@@ -131,7 +131,7 @@ The record of a voter's delegation.
 
 ## DelegatedCertificate
 
-```js
+```ts
 interface DelegatedCertificate {
   delegations: GovernanceKey[],
   stakingPub: string,
@@ -145,7 +145,7 @@ See [CIP-36](https://cips.cardano.org/cips/cip36#example---registration) for an 
 
 ## SignedDelegationMetadata
 
-```js
+```ts
 interface SignedDelegationMetadata {
   certificate: DelegatedCertificate,
   signature: string,
@@ -161,7 +161,7 @@ interface SignedDelegationMetadata {
 
 ### Extended APIError
 
-```js
+```ts
 APIErrorCode {
   UnsupportedVotingPurpose: -100,
   InvalidArgumentError: -101,
@@ -187,7 +187,7 @@ API Error Codes, which continue to be valid for this API Extension.
     If voting purposes 0, 5 and 9 were requested, and only 0 was supported by the
     wallet. Then the error will be:
 
-    ```js
+    ```ts
     {
       code: -100,
       info: "Unsupported Voting Purpose 5 & 9",
@@ -211,7 +211,7 @@ API Error Codes, which continue to be valid for this API Extension.
 
 ### Extended TxSignError
 
-```js
+```ts
 TxSignErrorCode {
   ProofGeneration: 1,
   UserDeclined: 2,
@@ -219,7 +219,7 @@ TxSignErrorCode {
 }
 ```
 
-```js
+```ts
 type TxSignError = {
   code: TxSignErrorCode,
   info: String,
@@ -331,6 +331,10 @@ This should trigger a request to the user of the wallet to approve the signing o
 ### Returns
 
 The [SignedDelegationMetadata](#signeddelegationmetadata) of the voter delegation passed in the `delegation` parameter.
+
+# Rationale
+
+TODO
 
 # Examples of Message Flows and Processes
 
