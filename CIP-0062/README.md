@@ -16,14 +16,30 @@ These definitions extend [CIP-30 (Cardano dApp-Wallet Web Bridge)](https://cips.
 
 # Motivation
 
-Cardano uses a sidechain (Jormungandr) for its treasury system ("Catalyst") and for other voting purposes. To be able to participate on the sidechain users associate their mainnet staked ADA with a voting key. This association happens on Cardano mainnet via metadata attached to a Catalyst "registration" transaction. [CIP-15 (Catalyst Registration Transaction Metadata Format)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0015) introduced the inital standard, with this being utilized as the only registration option upto Catalyst's Fund 9.
+Cardano uses a sidechain (Jormungandr) for its treasury system ("Catalyst") and for other voting purposes. To be able to participate on the sidechain users associate their mainnet staked ADA with a sidechain "voting key". This association happens on Cardano mainnet via metadata attached to a "registration" transaction. [CIP-15 (Catalyst Registration Transaction Metadata Format)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0015) introduced the inital standard, with this being solely utilized, for registration, up to Catalyst's Fund 9.
 
-With the introduction of [CIP-36 (Catalyst/Voltaire Registration Transaction Metadata Format - Updated)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) a renewed standard introduced. With changes to introduce a determinictic voting key derivation and a richer, yet more generic registration specification. This brought a suite of benefits, namely: vote delegation to either private or public representatives (Catalyst dReps), splitting or combining of private votes, the use of different voting keys or delegations for different purposes (Catalyst etc).
+With the introduction of [CIP-36 (Catalyst/Voltaire Registration Transaction Metadata Format - Updated)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) a renewed standard introduced. Featuring a determinictic voting key derivation and a richer, yet more generic registration specification. This brings a suite of benefits, namely; vote delegation to either private or public representatives (Catalyst dReps), splitting or combining of private votes, the use of different voting keys or delegations for different purposes (Catalyst etc).
 
 The goal for this CIP is to extend the dApp-Wallet web bridge to enable the construction of transactions containing metadata that conforms to
 [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) specification. This allows for the creation of governance centric dApps, offering greater functionality to users of Cardano governance/Catalyst. 
 
-Current iterations of Cardano's Catalyst lacks a web-based stack, instead users are forced to transfer voting keys from wallets to a mobile app. This process is not only cumbersome but figid and uncomprimising. Utilizing a dApp-Wallet web bridge stack for Catalyst would empower users to be able to engage with Catalyst across platforms.
+## Use Cases
+
+### Catalyst
+
+Current iterations of Cardano's Project Catalyst offers users a cumbersome process, requiring wallet's to generate new mnemoincs from which a ED255 key pair is derived. Private voting keys are encoded into a QR codes to pass them to a mobile application, for use in voting. This process required that voting keys could not be determinstically derived from a wallet's base mnomic.
+
+This CIP allows the creation of Catalyst Voting dApp(s) whereby wallets can connect and easily share voting key information. This offers a vastly better user experience, greatly reducing the number of steps required by the user to engage with Catalyst.
+
+Beyond improved user experience, this CIP enables the functionality benefits offered by [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036). Namely; the ability to easily delegate one's voting rights to one or many other voting keys in varying proportions.  
+
+### Catalyst - Community dApps
+
+By utilizing [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) functionality in a wallet dApp bridge leaves the door open for the community to produce their own Catalyst adjacent dApps.
+
+### Beyond Catalyst
+
+This CIP not only befits Cardano's Project Catalyst, but it allows other projects to implement the same governance frameworks.
 
 # Specification
 
@@ -334,7 +350,27 @@ The [SignedDelegationMetadata](#signeddelegationmetadata) of the voter delegatio
 
 # Rationale
 
-TODO
+## Extension
+
+It was decided to propose this as a new CIP rather than a change to [CIP-30](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0030), so that this was clearly optional (and could be referred to independently). Going forwards, we would expect various kinds of (possibly incompatible) dApp support.
+
+## API Connection
+
+A competing design option was to extend the existing enable function (in [CIP-30](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0030)) to take in a list of CIP APIs (30, 62, etc.) and have the wallet return back the list of accepted APIs. This was not pursued as individual `.enable()` functions allow for custom payloads to be passed at time of connection. This payload flexibility allows for greater variation in dApp connections; allowing for acceptance of part of APIs.
+
+## Voting Key Derivation
+
+Past iterations of this specification proposed three functions for voting key manipulation; get all used voting keys, rotate current voting key and get the current voting key. Discussions led to the removal of these functions, replacing them with `.getVotingKey()`. It was decided that such key control should be decided by wallets, not dApps. Furthermore the introduction of regular voting key rotation would add significant complexities without substantial utility gained.
+
+## Delegation Certificate Flow
+
+A competing design stipulated two separate functions for delegation flow, one to generate delegation certificates and the second to submit the delegation to the chain within a transaction. Having two functions gives the advantage that one wallet can create the delegation certificate whilst another is able to package this with a signature into a transaction. This was ultimately decided as undesirable since it would likely be a rare use case. Furthermore, this design would introduce significant complexity for hardware wallets users doubling their signing burden.
+
+Discussion was had around if dApps should be able to pass in the rewards address field to the delegation certificate, ultimately it was decided that the dApp should not be able to do this. Allowing users to select reward addresses via connected dApps would allow voting rewards to be passed to another wallet’s control. But this would also allow malicious dApps to substitute in their own rewards address. By passing the reward address burden onto the wallet limits the damage a malicious dApp is able to do. This does not prevent wallets from implementing their own methods to allow users to pass rewards addresses.
+
+## Voting Flow
+
+Originally it was proposed that wallets would solely bear the responsibility of packing vote objects into transactions and submitting these to the Jormungandr sidechain. This raised concerns as running Jormungandr nodes would introduce cost for wallet providers with considerable complexity for a narrow use case; Catalyst vote submission. It was concluded that it would be better for dApps to submit voting transactions themselves, this significantly reduces the complexity of wallet implementations. Only requiring wallets to convert vote objects into signed vote transactions. This has the added benefit of making the specification less Catalyst specific.
 
 # Examples of Message Flows and Processes
 
