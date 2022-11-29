@@ -10,42 +10,38 @@ License: CC-BY-4.0
 
 # Abstract
 
-This document describes an interface between webpage / web-based stacks and Cardano wallets. This specification defines the API of the javascript object that needs to be injected into the web applications to support Governance features.
+This document describes an interface between webpage/web-based stacks and Cardano wallets. This specification defines the API of the javascript object that needs to be injected into web applications to support governance features.
 
 These definitions extend [CIP-30 (Cardano dApp-Wallet Web Bridge)](https://cips.cardano.org/cips/cip30/) to provide specific support for Catalyst vote delegation and vote signing.
 
 # Motivation
 
-Cardano uses a sidechain (Jormungandr) for its treasury system ("Catalyst") and for other voting purposes. To be able to participate on the sidechain users associate their mainnet staked ADA with a sidechain "voting key". This association happens on Cardano mainnet via metadata attached to a "registration" transaction. [CIP-15 (Catalyst Registration Transaction Metadata Format)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0015) introduced the inital standard, with this being solely utilized, for registration, up to Catalyst's Fund 9.
+Cardano uses a sidechain ("Jormungandr") for its treasury system ("Catalyst") and for other voting purposes. To be able to participate on the sidechain users associate their mainnet staked ADA with a sidechain "voting key". This association happens on Cardano mainnet via metadata attached to a "registration" transaction. [CIP-15 (Catalyst Registration Transaction Metadata Format)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0015) defined the initial metadata standard for registration transactions, being the only standard up to Catalyst's Fund 9.
 
-With the introduction of [CIP-36 (Catalyst/Voltaire Registration Transaction Metadata Format - Updated)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) a renewed standard introduced. Featuring a determinictic voting key derivation and a richer, yet more generic registration specification. This brings a suite of benefits, namely; vote delegation to either private or public representatives (Catalyst dReps), splitting or combining of private votes, the use of different voting keys or delegations for different purposes (Catalyst etc).
+[CIP-36 (Catalyst/Voltaire Registration Transaction Metadata Format - Updated)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) introduced a renewed metadata standard, accompanied by a defined voting key derivation path. This standard brings a suite of benefits, namely; vote delegation to either private or public representatives (Catalyst dReps), splitting or combining of private votes, the use of different voting keys or delegations for different purposes.
 
 The goal for this CIP is to extend the dApp-Wallet web bridge to enable the construction of transactions containing metadata that conforms to
-[CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) specification. This allows for the creation of governance centric dApps, offering greater functionality to users of Cardano governance/Catalyst. 
+[CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) specification. This allows for the creation of governance centric dApps, offering greater functionality to users of Cardano governance/Catalyst.
 
 ## Use Cases
 
 ### Catalyst
 
-Current iterations of Cardano's Project Catalyst offers users a cumbersome process, requiring wallet's to generate new mnemoincs from which a ED255 key pair is derived. Private voting keys are encoded into a QR codes to pass them to a mobile application, for use in voting. This process required that voting keys could not be determinstically derived from a wallet's base mnomic.
+Current iterations of Cardano's Project Catalyst offers users a cumbersome experience, requiring wallets to generate new mnemoincs from which a Ed25519 key pair is derived to be used for voting purposes. Private voting keys are encoded into a QR codes and passed to a mobile application, where voting is performed. This process required that voting keys could not be deterministically derived from a wallet's base mnemonic.
 
-This CIP allows the creation of Catalyst Voting dApp(s) whereby wallets can connect and easily share voting key information. This offers a vastly better user experience, greatly reducing the number of steps required by the user to engage with Catalyst.
+This specification supports the creation of Catalyst voting dApps, where wallets can connect, share voting key information, register and or delegate. This offers a vastly improved user experience, greatly reducing the number of steps required by the user to engage with Catalyst.
 
-Beyond improved user experience, this CIP enables the functionality benefits offered by [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036). Namely; the ability to easily delegate one's voting rights to one or many other voting keys in varying proportions.  
-
-### Catalyst - Community dApps
-
-By utilizing [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) functionality in a wallet dApp bridge leaves the door open for the community to produce their own Catalyst adjacent dApps.
+Beyond improved user experience, this CIP enables the functionality benefits offered by the [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) metadata standard. Primarily, the ability to delegate one's voting rights to one or many other voting keys in varying proportions. This allows for the creation of Catalyst dReps, members of the community who advertise their voting keys publicly to attract other's voting power via delegation.
 
 ### Beyond Catalyst
 
-This CIP not only befits Cardano's Project Catalyst, but it allows other projects to implement the same governance frameworks.
+This CIP not only benefits Cardano's Project Catalyst, but it allows other projects to follow Catalyst's design to implement governance procedures on top of Cardano. Such projects are able to utilize this API by stating their claim to a unique [voting purpose](#votingpurpose). The notion of voting purpose from [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) allows differentiation from Catalyst for other project's governance needs.
 
 # Specification
 
 ## Version
 
-The API Extension specified in this document will count as version `0.2.0` for version-checking purposes below.
+The API extension specified in this document will count as version `0.2.0` for version-checking purposes below.
 
 ## Data Types
 
