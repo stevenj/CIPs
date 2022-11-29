@@ -27,7 +27,7 @@ The goal for this CIP is to extend the dApp-Wallet web bridge to enable the cons
 
 ### Catalyst
 
-Current iterations of Cardano's Project Catalyst offers users a cumbersome experience, requiring wallets to generate new mnemoincs from which a Ed25519 key pair is derived to be used for voting purposes. Private voting keys are encoded into a QR codes and passed to a mobile application, where voting is performed. This process required that voting keys could not be deterministically derived from a wallet's base mnemonic.
+Current iterations of Cardano's Project Catalyst offers users a cumbersome experience, requiring wallets to generate new mnemoincs from which a Ed25519 key pair is derived to be used for governance. Private voting keys are encoded into a QR codes and passed to a mobile application, where voting is performed. This process required that voting keys could not be deterministically derived from a wallet's base mnemonic.
 
 This specification supports the creation of Catalyst voting dApps, where wallets can connect, share voting key information, register and or delegate. This offers a vastly improved user experience, greatly reducing the number of steps required by the user to engage with Catalyst.
 
@@ -59,7 +59,7 @@ type GovernanceKey = {
 ```
 
 * votingKey - A hex-encoded string representing a 32 byte Ed25519 public key as described in [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036#delegation-format).
-* weight - Used to calculate the actual voting power using the rules described
+* weight - Used to calculate the proportion of voting power, using the rules described
   in [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036#delegation-format).
 
 ### VotingPurpose
@@ -72,12 +72,12 @@ type enum VotingPurpose = {
 
 * VotingPurpose - Defines the voting purpose of the governance functions. This is used
 to limit the scope of the governance functions. For example, a voting purpose
-might denote a council election, or some private purpose (agreed by convention). Currently, only voting purpose 0 (Zero) is defined, and it is for Catalyst events.
+might denote a council election, or some private purpose (agreed by convention). Currently, only voting purpose 0 (zero) is defined, and it is for Catalyst.
 
-**IMPORTANT**: The list of purposes in this CIP should be considered the
+**IMPORTANT**: The list of purposes in this specification should be considered the
 authoritative list of known purposes, subject to future amendment. Other voting
 purposes will be defined as required, by either an update to this CIP or a
-future CIP listing currently allocated Voting Purposes.
+future CIP listing currently allocated voting purposes.
 
 ### BlockDate
 
@@ -100,8 +100,9 @@ interface Proposal {
   votePublic: boolean
 }
 ```
+A Catalyst proposal.
 
-* votePlanId - Hex-encoded string to represent the vote plan unique identifier. This will be the same as anchored on the voting blockchain.
+* votePlanId - Hex-encoded string representing the vote plan unique identifier. This will be the same as anchored on the voting blockchain.
 * voteOptions - List of possible "choices" which can be made for this proposal.
 * votePublic - Boolean indicating whether the vote is public or private.
 
@@ -117,13 +118,13 @@ interface Vote {
 }
 ```
 
-An individual raw unsigned Vote record.
+An individual raw unsigned vote record.
 
 * proposal - The [`Proposal`](#proposal) being voted on.
 * choice - The choice, this value must match one of the available `voteOptions` in the `proposal` element. An `UnknownChoiceError` should be thrown if the value is not one of the valid `voteOptions` of the `proposal`.
 * expiration - Voting blockchain epoch \& slot for when the vote will expire. This value is supplied and maintained by the dApp, and forms a necessary component of a [Vote](#vote).
-* purpose - The [`VotingPurpose`](#voting-purpose) being voted on.
-* spendingCounter - The spending counter is used to prevent double voting. The spending counter for the vote transaction will be supplied and maintained by the dApp. The dApp will manage supplying this in the correct order, thus this should not be enforced by the Wallet.
+* purpose - The [`VotingPurpose`](#votingpurpose) being voted on.
+* spendingCounter - The spending counter is used to prevent double voting. The spending counter for the vote transaction will be supplied and maintained by the dApp. The dApp will manage supplying this in the correct order, thus this should not be enforced by the wallet.
 
 See [Jormungandr Voting](<https://input-output-hk.github.io/jormungandr/jcli/vote.html#voting>) for more information on the data required to construct votes.
 
@@ -138,8 +139,8 @@ interface Delegation {
 
 The record of a voter's delegation.
 
-* delegations - List of [`GovernanceKeys`](#governancekey) denoting the `votingKey` and `weight` of each delegation. As described within [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036#motivation) we make no distinction between delegations to one's own voting key (registration) or another's voting key. 
-* purpose - The [`VotingPurpose`](#voting-purpose) being delegated. A voter may have multiple active delegations for different purposes, but only one active delegation per unique `VotingPurpose`.
+* delegations - List of [`GovernanceKeys`](#governancekey) denoting the `votingKey` and `weight` of each delegation. As described within [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036#motivation), we make no distinction between delegations to one's own voting key (registration) or another's voting key. 
+* purpose - The associated [`VotingPurpose`](#voting-purpose). A voter may have multiple active delegations for different purposes, but only one active delegation per unique `VotingPurpose`.
 
 ## DelegatedCertificate
 
@@ -153,7 +154,7 @@ interface DelegatedCertificate {
 }
 ```
 
-See [CIP-36](https://cips.cardano.org/cips/cip36#example---registration) for an explanation of these fields.  Note: this object is not in exactly the same format as CIP-36, but the information it contains is the same.
+See [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) for an explanation of these fields. **Note:** this object is not in exactly the same format as CIP-36, but the information it contains is the same.
 
 ## SignedDelegationMetadata
 
@@ -182,6 +183,9 @@ APIErrorCode {
   InvalidVotePlanError: -104,
   InvalidVoteOptionError: -105
 }
+```
+
+```ts
 APIError {
   code: APIErrorCode,
   info: string,
@@ -189,23 +193,23 @@ APIError {
 }
 ```
 
-These are the extended API Error Codes used by this specification. See
-[CIP-30 Errors](https://cips.cardano.org/cips/cip30/#apierror) for the standard
-API Error Codes, which continue to be valid for this API Extension.
+These are the extended API error codes used by this specification. See
+[CIP-30 Errors](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0030#apierror) for the standard
+API error codes, which continue to be valid for this API extension.
 
 * UnsupportedVotingPurpose - The wallet does not support one of the requested
-  voting purposes. The `votingPurpose` element will be present in the `APIError` object and will list all the voting purposes requested, which are unsupported by the wallet. Eg:
+  voting purposes. The [`votingPurpose`](#votingpurpose) element will be present in the `APIError` object and will list all the voting purposes requested, which are unsupported by the wallet.
 
-    If voting purposes 0, 5 and 9 were requested, and only 0 was supported by the
-    wallet. Then the error will be:
+  Eg: If voting purposes 0, 5 and 9 were requested and only 0 was supported by the
+  wallet. Then the error will be:
 
-    ```ts
-    {
-      code: -100,
-      info: "Unsupported Voting Purpose 5 & 9",
-      votingPurpose: [5,9]
-    }
-    ```
+  ```ts
+  {
+    code: -100,
+    info: "Unsupported Voting Purpose 5 & 9",
+    votingPurpose: [5,9]
+  }
+  ```
 
 * InvalidArgumentError - Generic error for errors in the formatting of the arguments.
 * UnknownChoiceError - If a `choice` is not within the
@@ -239,15 +243,14 @@ type TxSignError = {
 }
 ```
 
-All TxSignErrors defined in [CIP-30](https://cips.cardano.org/cips/cip30/#txsignerror) are unchanged.
+All `TxSignErrors` defined in [CIP-30](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0030#txsignerror) are unchanged.
 
 * UserDeclined - Raised when the user declined to sign the entire transaction, in the case of a vote submission, this would be returned if the user declined to sign all of the votes.
-* VoteRejected - On a vote transaction, where there may be multiple votes.  If the user accepted some votes, but rejected others, then this error is raised, and `rejectedVotes` is present in the Error instance.
+* VoteRejected - On a vote transaction, where there may be multiple votes.  If the user accepted some votes, but rejected others, then this error is raised, and `rejectedVotes` is present in the error instance.
 
 ## Governance Extension to CIP-30
 
 ### cardano.{walletName}.governance.apiVersion: String
-Errors: [`APIError`](#extended-apierror)
 
 The version number of the Governance Extension API that the wallet supports.
 
@@ -263,17 +266,17 @@ should maintain a specific whitelist of allowed clients and voting purposes for
 this API. This whitelist can be used to avoid asking for permission every time.
 
 This API, being an extension of
-[CIP-30 (Cardano dApp-Wallet Web Bridge)](https://cips.cardano.org/cips/cip30/),
+[CIP-30](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0030),
 expects that `cardano.{walletName}.enable()` to be enabled and added to CIP-30
 whitelist implicitly when this API is enabled.
 
-When both this API and [CIP-30](https://cips.cardano.org/cips/cip30/) are being
+When both this API and [CIP-30](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0030) are being
 enabled, it is up to the Wallet to decide the number of prompts requesting
 permissions to be displayed to the user.
 
 * `purpose` - This is a list of `VotingPurposes` that the dApp is advising that it will be using on the API. The Wallet must respond with an `UnsupportedVotingPurpose` APIError if the purpose is not supported by the Wallet.
 
-  Note: Currently only Voting Purpose 0 (Catalyst) is defined. The wallet should reject any other Voting Purpose requested.
+  **Note**: Currently only Voting Purpose 0 (Catalyst) is defined. The wallet should reject any other Voting Purpose requested.
 
 ### Returns
 
@@ -304,7 +307,7 @@ Errors: [`APIError`](#extended-apierror), [`TxSignError`](#extended-txsignerror)
 
 * `votes` - An array of up to 10 votes to be validated with the wallet user, and if valid, signed.
 
-If the wallet user declines SOME of the votes, a [`TxSignError`](#extended-txsignerror) should be raised with `code` set to `VoteRejected` and the optional `rejectedVotes` array specifying the votes rejected.
+If the wallet user declines some of the votes, a [`TxSignError`](#extended-txsignerror) should be raised with `code` set to `VoteRejected` and the optional `rejectedVotes` array specifying the votes rejected.
 
 However, if the wallet user declines the entire set of votes, the wallet should raise a [`TxSignError`](#extended-txsignerror) with the `code` set to `UserDeclined`.
 
@@ -328,7 +331,7 @@ Errors: [`APIError`](#extended-apierror),
 
 This endpoint should construct the CBOR encoded delegation certificate according to the specs in [CIP-36 Example](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036#example---registration).
 
-The Wallet should then sign the certificate with the private staking key as described in the same example as above.
+The wallet should then sign the certificate with the private staking key as described in the same example as above.
 
 The implementation of this endpoint can make use of the already existing [CIP-30](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0030#full-api) `api.signData` and `api.submitTx` to perform the broadcasting of the transaction containing the metadata.
 
@@ -336,7 +339,7 @@ Upon submission of the transaction containing the delegation certificate as part
 
 * `delegation` - The voter registration [`delegation`](#delegation) record.
 
-This should be a call that implicitly CBOR encodes the `delegation` object and uses the already existing [CIP-30](https://cips.cardano.org/cips/cip30/) `api.submitTx` to submit the transaction. The resulting transaction hash should be returned.
+This should be a call that implicitly CBOR encodes the `delegation` object and uses the already existing [CIP-30](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0030) `api.submitTx` to submit the transaction. The resulting transaction hash should be returned.
 
 This should trigger a request to the user of the wallet to approve the signing of the transaction.
 
