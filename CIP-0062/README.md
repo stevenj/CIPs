@@ -37,6 +37,15 @@ Beyond improved user experience, this CIP enables the functionality benefits off
 
 This CIP not only benefits Cardano's Project Catalyst, but it allows other projects to follow Catalyst's design to implement governance procedures on top of Cardano. Such projects are able to utilize this API by stating their claim to a unique [voting purpose](#votingpurpose). The notion of voting purpose from [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) allows differentiation from Catalyst for other project's governance needs.
 
+## Rationale
+To provide governance specific functionality to wallet's and expose such API to the dApps (i.e Voting Centers). 
+
+This also addresses some short-comings of [CIP-30](https://cips.cardano.org/cips/cip30/); which signData can only be done by known an address; This signature is not relevant to a specific address, nor the dApp will know an address attached to the voting key. The voting key derivation is defined in [CIP-36](https://cips.cardano.org/cips/cip36/). 
+
+Perhaps [CIP-30](https://cips.cardano.org/cips/cip30/) could be expanded to also know how to perform `signData` from a given public key from a specific derivation path; instead of doing so only by known address.
+
+The other reason for this specification is to have a specific, but optional, namespace for governance specific wallet functionality. As such, wallet providers might choose not to implement this specification on top of [CIP-30](https://cips.cardano.org/cips/cip30/).
+
 # Specification
 
 ## Version
@@ -53,7 +62,7 @@ TODO: this
 
 ```ts
 type GovernanceKey = {
-  votingKey: string,
+  votingKey: string
   weight: number
 }
 ```
@@ -98,6 +107,7 @@ interface Proposal {
   votePlanId: string,
   voteOptions: number[],
   votePublic: boolean
+  proposalIndex: number
 }
 ```
 A Catalyst proposal.
@@ -132,7 +142,7 @@ See [Jormungandr Voting](<https://input-output-hk.github.io/jormungandr/jcli/vot
 
 ```ts
 interface Delegation {
-    delegations: GovernanceKey[],
+    delegations: GovernanceKey[]
     purpose: VotingPurpose
 }
 ```
@@ -146,10 +156,10 @@ The record of a voter's delegation.
 
 ```ts
 interface DelegatedCertificate {
-  delegations: GovernanceKey[],
-  stakingPub: string,
-  rewardAddress: string,
-  nonce: number,
+  delegations: GovernanceKey[]
+  stakingPub: string
+  rewardAddress: string
+  nonce: number
   purpose: VotingPurpose
 }
 ```
@@ -160,8 +170,8 @@ See [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) fo
 
 ```ts
 interface SignedDelegationMetadata {
-  certificate: DelegatedCertificate,
-  signature: string,
+  certificate: DelegatedCertificate
+  signature: string
   txHash: string
 }
 ```
@@ -184,7 +194,7 @@ type enum APIErrorCode {
   InvalidVoteOptionError = -105
 }
 
-APIError {
+interface APIError {
   code: APIErrorCode,
   info: string,
   votingPurpose: Purpose[]
@@ -377,7 +387,7 @@ Originally it was proposed that wallets would solely bear the responsibility of 
 
 Recall from [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) a registration is a self-delegation, allocating one's voting power to one's own voting key, to be used on the voting blockchain.
 
-1. **Get Voting Key** - dApp calls the method `api.getCurrentVotingKey()` to return the connected wallet account's public `VotingKey`.
+1. **`Get Voting Key`** - dApp call the method [**api.getCurrentVotingKey**](#apigetcurrentvotingkey-promisecborpublickey) to return a ed25519 32 bytes public key (x value of the point on the curve).
 
 2. **Construct Delegation** - The dApp constructs `Delegation` using the Wallet's public `VotingKey`, `weight` of 1 and `VotingPurpose` of 0 to denote Catalyst.   
 
@@ -391,21 +401,68 @@ Recall from [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-
 
 3. **Submit Delegation** - The dApp passes the `Delegation` object to the Wallet to build a metadata transcation and submit this to Cardano blockchain. Wallets are able employ the already existing [`api.submitTx()`](https://cips.cardano.org/cips/cip30/#apisubmittxtxcbortransactionpromisehash32), available from [CIP-30](https://cips.cardano.org/cips/cip30/).
 
-## Voting
+`payment verification key`:
+```
+{
+    "type": "PaymentVerificationKeyShelley_ed25519",
+    "description": "Payment Verification Key",
+    "cborHex": "58203bc3383b1b88a628e6fa55dbca446972d5b0cd71bcd8c133b2fa9cd3afbd1d48"
+}
+   
+``` 
 
-### Casting Public Catalyst Votes
+`payment secret key`: 
+```
+{
+    "type": "PaymentSigningKeyShelley_ed25519",
+    "description": "Payment Signing Key",
+    "cborHex": "5820b5c85fa8fb2d8cd4e4f624c206946652b6764e1af83034a79b32320ce3940dd9"
+}
+```
 
-TODO: once voting design is fully spec-ed 
+`staking verification key`:
+```
+{
+    "type": "StakeVerificationKeyShelley_ed25519",
+    "description": "Stake Verification Key",
+    "cborHex": "5820b5462be6a8a8ec0c4d6ee6edb83794a03df1bca43edc72b380df2ad3a982a555"
+}
+```
 
-1. **Collect User Choices** - 
-2. **Submit Votes** - 
-
-### Casting Private Catalyst Votes
+`staking secret key`:
+```
+{
+    "type": "StakeSigningKeyShelley_ed25519",
+    "description": "Stake Signing Key",
+    "cborHex": "58202f669f45365099666940922d47b29563d2c9f885c88a077bfea17631a7579d65"
+}
+```
 
 1. **Collect User Choices** - 
 2. **Submit Votes** -
 
+`Delegation certificate sample`:
+```
+{
+  "1":[["1788b78997774daae45ae42ce01cf59aec6ae2acee7f7cf5f76abfdd505ebed3",1],["b48b946052e07a95d5a85443c821bd68a4eed40931b66bd30f9456af8c092dfa",3]],
+  "2":"93bf1450ec2a3b18eebc7acfd311e695e12232efdf9ce4ac21e8b536dfacc70f",
+  
+  "3":"e1160a9d8f375f8e72b4bdbfa4867ca341a5aa6f17fde654c1a7d3254e",
+  "4":5479467,
+  "5":0
+}
+```
 
-## Test Vector
-
-See [test vector file](./test-vector.md).
+`Delegation certificate after signature`:
+```
+{
+  "61284":{
+    "1":[["1788b78997774daae45ae42ce01cf59aec6ae2acee7f7cf5f76abfdd505ebed3",1],["b48b946052e07a95d5a85443c821bd68a4eed40931b66bd30f9456af8c092dfa",3]],
+    "2":"93bf1450ec2a3b18eebc7acfd311e695e12232efdf9ce4ac21e8b536dfacc70f",
+    "3":"e1160a9d8f375f8e72b4bdbfa4867ca341a5aa6f17fde654c1a7d3254e",
+    "4":5479467,
+    "5":0
+  },
+  "61285":"0x3c25da29d43e70fb331c93b1197863e0d0a2e1cf7048994c580b0fc974f16bbb18c389aee380a66c0e7b6141f1df77b5db132dc228dbae9167238d96d4c4a80a"
+}
+```
