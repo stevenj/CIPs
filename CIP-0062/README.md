@@ -110,10 +110,10 @@ A Catalyst proposal.
 
 ```ts
 interface Vote {
-  proposal: Proposal,
-  choice: number,
-  expiration: BlockDate,
-  purpose: VotingPurpose,
+  proposal: Proposal
+  choice: number
+  expiration: BlockDate
+  purpose: VotingPurpose
   spendingCounter: number
 }
 ```
@@ -175,17 +175,15 @@ interface SignedDelegationMetadata {
 ### Extended APIError
 
 ```ts
-APIErrorCode {
-  UnsupportedVotingPurpose: -100,
-  InvalidArgumentError: -101,
-  UnknownChoiceError: -102,
-  InvalidBlockDateError: -103,
-  InvalidVotePlanError: -104,
+type enum APIErrorCode {
+  UnsupportedVotingPurpose: -100
+  InvalidArgumentError: -101
+  UnknownChoiceError: -102
+  InvalidBlockDateError: -103
+  InvalidVotePlanError: -104
   InvalidVoteOptionError: -105
 }
-```
 
-```ts
 APIError {
   code: APIErrorCode,
   info: string,
