@@ -176,12 +176,12 @@ interface SignedDelegationMetadata {
 
 ```ts
 type enum APIErrorCode {
-  UnsupportedVotingPurpose: -100
-  InvalidArgumentError: -101
-  UnknownChoiceError: -102
-  InvalidBlockDateError: -103
-  InvalidVotePlanError: -104
-  InvalidVoteOptionError: -105
+  UnsupportedVotingPurpose = -100
+  InvalidArgumentError = -101
+  UnknownChoiceError = -102
+  InvalidBlockDateError = -103
+  InvalidVotePlanError = -104
+  InvalidVoteOptionError = -105
 }
 
 APIError {
@@ -226,15 +226,15 @@ API error codes, which continue to be valid for this API extension.
 ### Extended TxSignError
 
 ```ts
-TxSignErrorCode {
-  ProofGeneration: 1,
-  UserDeclined: 2,
-  VoteRejected: 3,
+type enum TxSignErrorCode {
+  ProofGeneration = 1,
+  UserDeclined = 2,
+  VoteRejected = 3,
 }
 ```
 
 ```ts
-type TxSignError = {
+interface TxSignError = {
   code: TxSignErrorCode,
   info: String,
   rejectedVotes: number[]
@@ -370,42 +370,3 @@ Discussion was had around if dApps should be able to pass in the rewards address
 Originally it was proposed that wallets would solely bear the responsibility of packing vote objects into transactions and submitting these to the Jormungandr sidechain. This raised concerns as running Jormungandr nodes would introduce cost for wallet providers with considerable complexity for a narrow use case; Catalyst vote submission. It was concluded that it would be better for dApps to submit voting transactions themselves, this significantly reduces the complexity of wallet implementations. Only requiring wallets to convert vote objects into signed vote transactions. This has the added benefit of making the specification less Catalyst specific.
 
 # Examples of Message Flows and Processes
-
-## Delegation
-
-### Catalyst Registration
-
-Recall from [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) a registration is a self-delegation, allocating one's voting power to one's own voting key, to be used on the voting blockchain.
-
-1. **Get Voting Key** - dApp calls the method `api.getCurrentVotingKey()` to return the connected wallet account's public `VotingKey`.
-
-2. **Construct Delegation** - The dApp constructs `Delegation` using the Wallet's public `VotingKey`, `weight` of 1 and `VotingPurpose` of 0 to denote Catalyst.   
-
-3. **Submit Delegation** - The dApp passes the `Delegation` object to the Wallet to build a metadata transcation and submit this to Cardano blockchain. Wallets are able employ the already existing [`api.submitTx()`](https://cips.cardano.org/cips/cip30/#apisubmittxtxcbortransactionpromisehash32), available from [CIP-30](https://cips.cardano.org/cips/cip30/).
-
-### Delegation to Catalyst dReps 
-
-1. **Collect Voting Keys** - Catalyst Voting Center dApp connects to dRep wallet's and using `api.getCurrentVotingKey()` and collects dRep's public `VotingKey`.
-
-2. **Construct Delegation** - A prospective delegating user browses dReps on the Catalyst Voting Center dApp selecting their choice of delegation and weight. The dApp uses the chosen dRep choices and weight to constuct `Delegation`.
-
-3. **Submit Delegation** - The dApp passes the `Delegation` object to the Wallet to build a metadata transcation and submit this to Cardano blockchain. Wallets are able employ the already existing [`api.submitTx()`](https://cips.cardano.org/cips/cip30/#apisubmittxtxcbortransactionpromisehash32), available from [CIP-30](https://cips.cardano.org/cips/cip30/).
-
-## Voting
-
-### Casting Public Catalyst Votes
-
-TODO: once voting design is fully spec-ed 
-
-1. **Collect User Choices** - 
-2. **Submit Votes** - 
-
-### Casting Private Catalyst Votes
-
-1. **Collect User Choices** - 
-2. **Submit Votes** -
-
-
-## Test Vector
-
-See [test vector file](./test-vector.md).
