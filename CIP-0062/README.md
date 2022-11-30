@@ -37,6 +37,15 @@ Beyond improved user experience, this CIP enables the functionality benefits off
 
 This CIP not only benefits Cardano's Project Catalyst, but it allows other projects to follow Catalyst's design to implement governance procedures on top of Cardano. Such projects are able to utilize this API by stating their claim to a unique [voting purpose](#votingpurpose). The notion of voting purpose from [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) allows differentiation from Catalyst for other project's governance needs.
 
+## Rationale
+To provide governance specific functionality to wallet's and expose such API to the dApps (i.e Voting Centers). 
+
+This also addresses some short-comings of [CIP-30](https://cips.cardano.org/cips/cip30/); which signData can only be done by known an address; This signature is not relevant to a specific address, nor the dApp will know an address attached to the voting key. The voting key derivation is defined in [CIP-36](https://cips.cardano.org/cips/cip36/). 
+
+Perhaps [CIP-30](https://cips.cardano.org/cips/cip30/) could be expanded to also know how to perform `signData` from a given public key from a specific derivation path; instead of doing so only by known address.
+
+The other reason for this specification is to have a specific, but optional, namespace for governance specific wallet functionality. As such, wallet providers might choose not to implement this specification on top of [CIP-30](https://cips.cardano.org/cips/cip30/).
+
 # Specification
 
 ## Version
@@ -53,7 +62,7 @@ TODO: this
 
 ```ts
 type GovernanceKey = {
-  votingKey: string,
+  votingKey: string
   weight: number
 }
 ```
@@ -98,6 +107,7 @@ interface Proposal {
   votePlanId: string,
   voteOptions: number[],
   votePublic: boolean
+  proposalIndex: number
 }
 ```
 A Catalyst proposal.
@@ -132,7 +142,7 @@ See [Jormungandr Voting](<https://input-output-hk.github.io/jormungandr/jcli/vot
 
 ```ts
 interface Delegation {
-    delegations: GovernanceKey[],
+    delegations: GovernanceKey[]
     purpose: VotingPurpose
 }
 ```
@@ -146,10 +156,10 @@ The record of a voter's delegation.
 
 ```ts
 interface DelegatedCertificate {
-  delegations: GovernanceKey[],
-  stakingPub: string,
-  rewardAddress: string,
-  nonce: number,
+  delegations: GovernanceKey[]
+  stakingPub: string
+  rewardAddress: string
+  nonce: number
   purpose: VotingPurpose
 }
 ```
@@ -160,8 +170,8 @@ See [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) fo
 
 ```ts
 interface SignedDelegationMetadata {
-  certificate: DelegatedCertificate,
-  signature: string,
+  certificate: DelegatedCertificate
+  signature: string
   txHash: string
 }
 ```
@@ -184,7 +194,7 @@ type enum APIErrorCode {
   InvalidVoteOptionError = -105
 }
 
-APIError {
+interface APIError {
   code: APIErrorCode,
   info: string,
   votingPurpose: Purpose[]
@@ -349,7 +359,7 @@ The [SignedDelegationMetadata](#signeddelegationmetadata) of the voter delegatio
 
 ## Delegation Cert process
 
-1. **`Get Voting Key`** - dApp call the method [**api.getCurrentVotingKey**](#apigetcurrentvotingkey-promisecborpublickey) to return a ed25519 32 bytes public key (x value of the point on the curve).
+1. **`Get Voting Key`** - dApp call the method [**api.getVotingKey**](#apigetvotingkey-promise-cborpublickey) to get the voting public key.
 
 2. **`Collect Voting Keys`** - The dApp Collects the dRep keys to delegate voting power to from the Catalyst Voting Center backend, and the user selects the required delegation.
 
@@ -365,7 +375,7 @@ The [SignedDelegationMetadata](#signeddelegationmetadata) of the voter delegatio
 ### *** keys ***
 
 `payment verification key`:
-```
+```json
 {
     "type": "PaymentVerificationKeyShelley_ed25519",
     "description": "Payment Verification Key",
@@ -375,7 +385,7 @@ The [SignedDelegationMetadata](#signeddelegationmetadata) of the voter delegatio
 ``` 
 
 `payment secret key`: 
-```
+```json
 {
     "type": "PaymentSigningKeyShelley_ed25519",
     "description": "Payment Signing Key",
@@ -384,7 +394,7 @@ The [SignedDelegationMetadata](#signeddelegationmetadata) of the voter delegatio
 ```
 
 `staking verification key`:
-```
+```json
 {
     "type": "StakeVerificationKeyShelley_ed25519",
     "description": "Stake Verification Key",
@@ -393,7 +403,7 @@ The [SignedDelegationMetadata](#signeddelegationmetadata) of the voter delegatio
 ```
 
 `staking secret key`:
-```
+```json
 {
     "type": "StakeSigningKeyShelley_ed25519",
     "description": "Stake Signing Key",
@@ -404,7 +414,7 @@ The [SignedDelegationMetadata](#signeddelegationmetadata) of the voter delegatio
 ### *** Delegation Certificate ***
 
 `Delegation certificate sample`:
-```
+```json
 {
   "1":[["1788b78997774daae45ae42ce01cf59aec6ae2acee7f7cf5f76abfdd505ebed3",1],["b48b946052e07a95d5a85443c821bd68a4eed40931b66bd30f9456af8c092dfa",3]],
   "2":"93bf1450ec2a3b18eebc7acfd311e695e12232efdf9ce4ac21e8b536dfacc70f",
@@ -416,7 +426,7 @@ The [SignedDelegationMetadata](#signeddelegationmetadata) of the voter delegatio
 ```
 
 `Delegation certificate after signature`:
-```
+```json
 {
   "61284":{
     "1":[["1788b78997774daae45ae42ce01cf59aec6ae2acee7f7cf5f76abfdd505ebed3",1],["b48b946052e07a95d5a85443c821bd68a4eed40931b66bd30f9456af8c092dfa",3]],
