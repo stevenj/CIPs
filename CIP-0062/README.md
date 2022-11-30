@@ -53,7 +53,7 @@ TODO: this
 
 ```ts
 type GovernanceKey = {
-  votingKey: string,
+  votingKey: string
   weight: number
 }
 ```
@@ -83,7 +83,7 @@ future CIP listing currently allocated voting purposes.
 
 ```ts
 interface BlockDate {
-  epoch: number,
+  epoch: number
   slot: number
 }
 ```
@@ -95,8 +95,8 @@ interface BlockDate {
 
 ```ts
 interface Proposal {
-  votePlanId: string,
-  voteOptions: number[],
+  votePlanId: string
+  voteOptions: number[]
   votePublic: boolean
 }
 ```
@@ -132,8 +132,8 @@ See [Jormungandr Voting](<https://input-output-hk.github.io/jormungandr/jcli/vot
 
 ```ts
 interface Delegation {
-    delegations: GovernanceKey[],
-    purpose: VotingPurpose
+  delegations: GovernanceKey[]
+  purpose: VotingPurpose
 }
 ```
 
@@ -146,10 +146,10 @@ The record of a voter's delegation.
 
 ```ts
 interface DelegatedCertificate {
-  delegations: GovernanceKey[],
-  stakingPub: string,
-  rewardAddress: string,
-  nonce: number,
+  delegations: GovernanceKey[]
+  stakingPub: string
+  rewardAddress: string
+  nonce: number
   purpose: VotingPurpose
 }
 ```
@@ -160,8 +160,8 @@ See [CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) fo
 
 ```ts
 interface SignedDelegationMetadata {
-  certificate: DelegatedCertificate,
-  signature: string,
+  certificate: DelegatedCertificate
+  signature: string
   txHash: string
 }
 ```
@@ -176,17 +176,17 @@ interface SignedDelegationMetadata {
 
 ```ts
 type enum APIErrorCode {
-  UnsupportedVotingPurpose = -100
-  InvalidArgumentError = -101
-  UnknownChoiceError = -102
-  InvalidBlockDateError = -103
-  InvalidVotePlanError = -104
+  UnsupportedVotingPurpose = -100,
+  InvalidArgumentError = -101,
+  UnknownChoiceError = -102,
+  InvalidBlockDateError = -103,
+  InvalidVotePlanError = -104,
   InvalidVoteOptionError = -105
 }
 
-APIError {
-  code: APIErrorCode,
-  info: string,
+interface APIError {
+  code: APIErrorCode
+  info: string
   votingPurpose: Purpose[]
 }
 ```
@@ -235,8 +235,8 @@ type enum TxSignErrorCode {
 
 ```ts
 interface TxSignError = {
-  code: TxSignErrorCode,
-  info: String,
+  code: TxSignErrorCode
+  info: String
   rejectedVotes: number[]
 }
 ```
