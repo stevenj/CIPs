@@ -1,9 +1,14 @@
 ---
 CIP: 62
 Title: Cardano dApp-Connector Governance extension
-Authors: Bruno Martins <bruno.martins@iohk.io>, Steven Johnson <steven.johnson@iohk.io>
-Status: Draft
-Type: Standards
+Category: Wallets
+Status: Proposed
+Authors: 
+    - Bruno Martins <bruno.martins@iohk.io>, 
+    - Steven Johnson <steven.johnson@iohk.io>
+Implementors: []
+Discussions:
+    - https://github.com/cardano-foundation/CIPs/pull/296
 Created: 2021-06-11
 License: CC-BY-4.0
 ---
