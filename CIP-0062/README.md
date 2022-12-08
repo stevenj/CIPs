@@ -24,9 +24,10 @@ the use of different voting keys or delegations
 for different purposes (Catalyst etc).
 
 ## Rationale
-To provide governance specific functionality to wallet's and expose such API to the dApps (i.e Voting Centers). 
 
-This also addresses some short-comings of [CIP-30](https://cips.cardano.org/cips/cip30/); which signData can only be done by known an address; This signature is not relevant to a specific address, nor the dApp will know an address attached to the voting key. The voting key derivation is defined in [CIP-36](https://cips.cardano.org/cips/cip36/). 
+To provide governance specific functionality to wallet's and expose such API to the dApps (i.e Voting Centers).
+
+This also addresses some short-comings of [CIP-30](https://cips.cardano.org/cips/cip30/); which signData can only be done by known an address; This signature is not relevant to a specific address, nor the dApp will know an address attached to the voting key. The voting key derivation is defined in [CIP-36](https://cips.cardano.org/cips/cip36/).
 
 Perhaps [CIP-30](https://cips.cardano.org/cips/cip30/) could be expanded to also know how to perform `signData` from a given public key from a specific derivation path; instead of doing so only by known address.
 
@@ -104,6 +105,7 @@ Proposal information.
 * votePlanId - Hex encoded string to represent vote plan unique identifier. This will be the same as anchored on voting chain, and is managed by the dApp.
 * voteOptions - List of possible "choices" which can be made for this proposal.
 * votePublic - Boolean indicating whether the vote is public or private.
+* proposalIndex - The index within the vote plan for this Proposal.
 
 ### Vote
 
@@ -113,19 +115,31 @@ interface Vote {
   choice: number
   expiration: BlockDate
   purpose: VotingPurpose
-  spendingCounter: number
+  spendingCounter?: number
+  spendingCounterLane?: number
 }
 ```
 
 An individual raw Unsigned Vote record.
 
 * proposal - The [proposal](#proposal) being voted on.
-* choice - This value MUST match one of the available `voteOptions` in the `proposal` element. An `UnknownChoiceError` should be thrown if the value is not one of the valid `voteOptions` of the `proposal`.
-* expiration - Voting Chain epoch \& slot for when the vote will expire. This value is supplied and maintained by the dApp, and forms a necessary component of a [Vote](#vote)
+* choice - This value MUST match one of the available `voteOptions` in the
+  `proposal` element. An `UnknownChoiceError` should be thrown if the value is
+  not one of the valid `voteOptions` of the `proposal`.
+* expiration - Voting Chain epoch \& slot for when the vote will expire. This
+  value is supplied and maintained by the dApp, and forms a necessary component
+  of a [Vote](#vote)
 * purpose - The [voting purpose](#voting-purpose) being voted on. (Currently always 0).
-* spendingCounter - The spending counter is used to prevent double voting. The spending counter for the vote transaction will be supplied and maintained by the dApp. The dApp will manage supplying this in the correct order, and this should not be enforced by the Wallet.
+* spendingCounter? - The spending counter is used to prevent double voting. The
+  spending counter for the vote transaction will be supplied and maintained by
+  the dApp. The dApp will manage supplying this in the correct order, and this
+  should not be enforced by the Wallet. If the spending counter is not used by
+  the voting purpose, it can be omitted.
+* spendingCounterLane? - There can be up to 8 lanes (0-7), this field defines
+  which lane the spending counter applies to. If spendingCounter is defined, and
+  this field is not, then the spendingCounterLane defaults to 0.
 
-It is required to attach it to the vote according to [Jormungandr Voting] (<https://input-output-hk.github.io/jormungandr/jcli/vote.html#voting>).
+It is required to attach it to the vote according to [Jormungandr Voting] (<https://input-output-hk.github.io/catalyst-core/core-ledger-doc/jcli/vote.html>).
 
 ## Delegation
 
@@ -298,11 +312,26 @@ The API chosen here is for the mini mum API necessary for dApp <-> Wallet
 interactions without convenience functions that don't strictly need the wallet's
 state to work.
 
-## api.signVotes(votes: Vote[]): Promise\<Bytes>[]
+## api.signVotes(votes: Vote[], settings?: string): Promise\<Bytes>[]
 
 Errors: [`APIError`](#extended-apierror), [`TxSignError`](#extended-txsignerror)
 
 * votes - an array of up to 10 votes to be validated with the wallet user, and if valid, signed.
+* settings - OPTIONAL voting system specific vote format settings.
+  * This actual contents of this field may differ per voting purpose, and may be
+    used to identify different kinds of voting transaction formats.
+  * The only fixed requirement is that it be a string that contains json
+    formatted data.
+  * The data itself is specified by the voting purpose and the kinds of
+    votes/vote formats supported by that purpose.
+  * It is valid for this field to be an empty string if there are no settings to
+    be used by the vote signing algorithm supported by this voting purpose.
+  * The string should be human readable json, so that it can be validated by the
+    voter, if required by the wallet. It must be possible for the wallet to
+    pretty print the json in the string without effecting its meaning.
+  * The details of the vote-signing algorithm and the settings, if any, are to
+    be described by the entity defining and managing the voting purpose, and is
+    outside of the scope of this CIP.
 
 IF the wallet user declines SOME of the votes, a [`TxSignError`](#extended-txsignerror) should be raised with `code` set to `VoteRejected` and the optional `rejectedVotes` array specifying the votes rejected.
 
@@ -317,7 +346,9 @@ In either case, where the user declines to sign at least 1 of the votes, no sign
 ## api.getVotingKey(): Promise\<cbor<PublicKey\>\>
 
 Should return the voting [public key](#publickey). The wallet should use `address_index`= 0 and return the public key for that index.
+
 ### Returns
+
 cbor hex encoded representation of the public key.
 
 ## api.submitDelegation(delegation: Delegation): Promise\<SignedDelegationMetadata>
@@ -361,19 +392,21 @@ The [Signed Delegation Metadata](#signeddelegationmetadata) of the voter registr
 
 ## **Test Vectors**
 
-### *** keys ***
+### ***keys***
 
 `payment verification key`:
+
 ```json
 {
     "type": "PaymentVerificationKeyShelley_ed25519",
     "description": "Payment Verification Key",
     "cborHex": "58203bc3383b1b88a628e6fa55dbca446972d5b0cd71bcd8c133b2fa9cd3afbd1d48"
 }
-   
-``` 
 
-`payment secret key`: 
+```
+
+`payment secret key`:
+
 ```json
 {
     "type": "PaymentSigningKeyShelley_ed25519",
@@ -383,6 +416,7 @@ The [Signed Delegation Metadata](#signeddelegationmetadata) of the voter registr
 ```
 
 `staking verification key`:
+
 ```json
 {
     "type": "StakeVerificationKeyShelley_ed25519",
@@ -392,6 +426,7 @@ The [Signed Delegation Metadata](#signeddelegationmetadata) of the voter registr
 ```
 
 `staking secret key`:
+
 ```json
 {
     "type": "StakeSigningKeyShelley_ed25519",
@@ -400,14 +435,15 @@ The [Signed Delegation Metadata](#signeddelegationmetadata) of the voter registr
 }
 ```
 
-### *** Delegation Certificate ***
+### ***Delegation Certificate***
 
 `Delegation certificate sample`:
+
 ```json
 {
   "1":[["1788b78997774daae45ae42ce01cf59aec6ae2acee7f7cf5f76abfdd505ebed3",1],["b48b946052e07a95d5a85443c821bd68a4eed40931b66bd30f9456af8c092dfa",3]],
   "2":"93bf1450ec2a3b18eebc7acfd311e695e12232efdf9ce4ac21e8b536dfacc70f",
-  
+
   "3":"e1160a9d8f375f8e72b4bdbfa4867ca341a5aa6f17fde654c1a7d3254e",
   "4":5479467,
   "5":0
@@ -415,6 +451,7 @@ The [Signed Delegation Metadata](#signeddelegationmetadata) of the voter registr
 ```
 
 `Delegation certificate after signature`:
+
 ```json
 {
   "61284":{
