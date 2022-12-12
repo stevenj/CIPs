@@ -18,15 +18,15 @@ License: CC-BY-4.0
 
 This document describes an interface between webpage/web-based stacks and Cardano wallets. This specification defines the API of the javascript object that needs to be injected into web applications to support governance features.
 
-These definitions extend [CIP-30 (Cardano dApp-Wallet Web Bridge)](https://cips.cardano.org/cips/cip30/) to provide specific support for vote delegation and vote signing in cardano.
+These definitions extend [CIP-30 (Cardano dApp-Wallet Web Bridge)](https://cips.cardano.org/cips/cip30/) to provide specific support for vote delegation and vote signing in Cardano.
 
 # Motivation
 
-Cardano requires governance capabilities, to support not only the Catalyst
-system which is funded by the Cardano Treasury, but also for other voting
-purposes. To be able to participate in a voting system users associate their
-mainnet staked ADA with a "voting key". This association happens on
-Cardano mainnet via metadata attached to a "registration" transaction.
+Cardano requires governance capabilities to support election and voting
+purposes. ie, Project Catalyst. To be able to participate in a voting system
+users associate their mainnet staked ADA with a "voting key". This association
+happens on the Cardano mainnet via metadata attached to a "registration"
+transaction.
 
 Registration uses
 [CIP-36 (Catalyst/Voltaire Registration Transaction Metadata Format - Updated)](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036)
@@ -48,14 +48,15 @@ format was deprecated for Project Catalyst after the conclusion of Fund 9.  It w
 
 # Motivation
 
-The goal for this CIP is to extend the dApp-Wallet web bridge to enable the construction of transactions containing metadata that conforms to
-[CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) specification. This allows for the creation of governance centric dApps, offering greater functionality to users by providing a unified governance API that can be used for more than Project Catalyst.
+The goal for this CIP is to extend the dApp-Wallet web bridge to enable the construction of transactions containing metadata that conforms to the
+[CIP-36](https://github.com/cardano-foundation/CIPs/tree/master/CIP-0036) specification. This allows for the creation of governance-centric dApps, offering greater functionality to users by providing a unified governance API that can be used for more than Project Catalyst.
 
 ## Rationale
 
-To provide governance specific functionality to wallet's and expose such API to the dApps (i.e Voting Centers).
+To provide governance-specific functionality to wallets and expose such API to
+the dApps (i.e Voting Centers).
 
-This also addresses some short-comings of [CIP-30](https://cips.cardano.org/cips/cip30/); which signData can only be done by known an address; This signature is not relevant to a specific address, nor the dApp will know an address attached to the voting key. The voting key derivation is defined in [CIP-36](https://cips.cardano.org/cips/cip36/)
+This also addresses some shortcomings of [CIP-30](https://cips.cardano.org/cips/cip30/)](<https://cips.cardano.org/cips/cip30/>); which signData can only be done by known an address; This signature is not relevant to a specific address, nor the dApp will know an address attached to the voting key. The voting key derivation is defined in [CIP-36](https://cips.cardano.org/cips/cip36/)
 
 ## Use Cases
 
